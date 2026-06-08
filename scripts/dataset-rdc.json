@@ -1,0 +1,93 @@
+{
+  "election": {
+    "nom": "Présidentielle RDC 2026 (Simulation)",
+    "type": "présidentielle",
+    "date": "2026-05-15T00:00:00Z"
+  },
+  "circonscriptions": [
+    {
+      "id": "circ-kinshasa-1",
+      "nom": "Kinshasa Gombe",
+      "province": "Kinshasa",
+      "longitude": 13.23,
+      "latitude": -4.32,
+      "total_bureaux": 45,
+      "population_estimee": 2500000
+    },
+    {
+      "id": "circ-kinshasa-2",
+      "nom": "Kinshasa Kasavubu",
+      "province": "Kinshasa",
+      "longitude": 13.15,
+      "latitude": -4.40,
+      "total_bureaux": 38,
+      "population_estimee": 1800000
+    },
+    {
+      "id": "circ-katanga-1",
+      "nom": "Katanga Lubumbashi",
+      "province": "Katanga",
+      "longitude": 27.50,
+      "latitude": -8.80,
+      "total_bureaux": 52,
+      "population_estimee": 3000000
+    },
+    {
+      "id": "circ-kasai-1",
+      "nom": "Kasai Central Tshikapa",
+      "province": "Kasai Central",
+      "longitude": 23.45,
+      "latitude": -3.89,
+      "total_bureaux": 35,
+      "population_estimee": 2200000
+    },
+    {
+      "id": "circ-kivu-1",
+      "nom": "Nord-Kivu Goma",
+      "province": "Nord-Kivu",
+      "longitude": 29.22,
+      "latitude": -1.68,
+      "total_bureaux": 28,
+      "population_estimee": 1600000
+    }
+  ],
+  "candidats": [
+    {
+      "id": "cand-001",
+      "nom": "Candidat Alpha",
+      "parti": "Parti A",
+      "colour": "#e74c3c"
+    },
+    {
+      "id": "cand-002",
+      "nom": "Candidat Beta",
+      "parti": "Parti B",
+      "colour": "#3498db"
+    },
+    {
+      "id": "cand-003",
+      "nom": "Candidat Gamma",
+      "parti": "Parti C",
+      "colour": "#2ecc71"
+    },
+    {
+      "id": "cand-004",
+      "nom": "Candidat Delta",
+      "parti": "Parti D",
+      "colour": "#f39c12"
+    }
+  ],
+  "simulation_config": {
+    "duration_seconds": 300,
+    "batch_interval_ms": 2500,
+    "bureaux_progression_per_batch": {
+      "min": 2,
+      "max": 8
+    },
+    "participation_rate_range": {
+      "min": 45,
+      "max": 82
+    },
+    "anomaly_injection_rate": 0.08
+  }
+}

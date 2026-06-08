@@ -1,0 +1,23 @@
+CREATE TABLE simulations (
+  id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+  data JSONB NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE regions (
+  id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+  name VARCHAR(255) NOT NULL,
+  latitude DECIMAL(10, 8),
+  longitude DECIMAL(11, 8),
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE election_results (
+  id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+  simulation_id BIGINT REFERENCES simulations(id),
+  region_id BIGINT REFERENCES regions(id),
+  votes INT,
+  percentage DECIMAL(5, 2),
+  created_at TIMESTAMP DEFAULT NOW()
+);
