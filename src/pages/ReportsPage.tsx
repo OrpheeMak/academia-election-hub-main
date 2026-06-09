@@ -7,7 +7,7 @@ import { Download, FileText, Clock, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { backendOrchestrator, AnomalyReport } from '@/services/backendOrchestrator';
+import { supabaseOrchestrator, AnomalyReport } from '@/services/supabaseOrchestrator';
 
 interface Report {
   id: string;
@@ -33,12 +33,12 @@ export function ReportsPage() {
     try {
       setLoading(true);
 
-      const electionRes = await backendOrchestrator.getCurrentElection();
+      const electionRes = await supabaseOrchestrator.getCurrentElection();
       if (electionRes.success && electionRes.data) {
         setElection(electionRes.data);
 
         // Récupérer les anomalies
-        const anomaliesRes = await backendOrchestrator.getAnomalies(electionRes.data.id, {
+        const anomaliesRes = await supabaseOrchestrator.getAnomalies(electionRes.data.id, {
           limit: 100,
         });
         if (anomaliesRes.success) {

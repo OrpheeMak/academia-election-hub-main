@@ -80,59 +80,6 @@ export function classifyAnomaly(
     color: colorMap[gravite],
   } as AnomalyClassification;
 }
-  const typeMap: Record<string, Partial<AnomalyClassification>> = {
-    zscore_participation: {
-      type: 'zscore_participation',
-      icon: '📊',
-      description: 'Participation anormale (Z-Score)',
-      actionable: true,
-    },
-    iqr_participation: {
-      type: 'iqr_participation',
-      icon: '📉',
-      description: 'Participation hors limites interquartiles',
-      actionable: true,
-    },
-    participation_100_pourcent: {
-      type: 'participation_100_pourcent',
-      icon: '⚠️',
-      description: 'Participation dépasse 100%',
-      actionable: true,
-    },
-    voix_depasse_inscrits: {
-      type: 'voix_depasse_inscrits',
-      icon: '🚨',
-      description: 'Voix supérieures aux inscrits',
-      actionable: true,
-    },
-    regression_voix: {
-      type: 'regression_voix',
-      icon: '📉',
-      description: 'Régression anormale des voix',
-      actionable: true,
-    },
-  };
-
-  const baseClassification = typeMap[typeAnoalie] || {
-    type: 'other',
-    icon: 'ℹ️',
-    description: 'Anomalie détectée',
-    actionable: false,
-  };
-
-  // Couleurs selon gravité
-  const colorMap: Record<Anomaly Severity, string> = {
-    faible: 'text-blue-500 bg-blue-500/10',
-    moyen: 'text-amber-500 bg-amber-500/10',
-    critique: 'text-red-500 bg-red-500/10',
-  };
-
-  return {
-    ...baseClassification,
-    severity: gravite,
-    color: colorMap[gravite],
-  } as AnomalyClassification;
-}
 
 /**
  * Formatage d'une anomalie pour l'affichage

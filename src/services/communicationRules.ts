@@ -4,7 +4,6 @@
  * Gère: WebSockets, Broadcasting, Notifications Push
  */
 
-import { backendOrchestrator } from './backendOrchestrator';
 import { supabase } from '@/integrations/supabase/client';
 
 // ============================================================================
@@ -466,7 +465,7 @@ class CommunicationRulesEngine {
         const event: RealTimeEvent = {
           id: `${Date.now()}_${Math.random()}`,
           type: payload.eventType as any,
-          priority: payload.new?.gravite || 'medium',
+          priority: (payload.new as any)?.gravite || 'medium',
           timestamp: new Date(),
           data: payload.new || payload.old,
           status: 'delivered',

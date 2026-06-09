@@ -7,7 +7,7 @@ import { TrendingUp, BarChart3, Users, Zap } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { backendOrchestrator, ElectionStats, ProvinceStats } from '@/services/backendOrchestrator';
+import { supabaseOrchestrator, ElectionStats, ProvinceStats } from '@/services/supabaseOrchestrator';
 import { LineChart, BarChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export function StatisticsPage() {
@@ -29,12 +29,12 @@ export function StatisticsPage() {
       setLoading(true);
 
       // Récupérer l'élection en cours
-      const electionRes = await backendOrchestrator.getCurrentElection();
+      const electionRes = await supabaseOrchestrator.getCurrentElection();
       if (electionRes.success && electionRes.data) {
         setElection(electionRes.data);
 
         // Récupérer les stats globales
-        const globalStatsRes = await backendOrchestrator.getGlobalStats(electionRes.data.id);
+        const globalStatsRes = await supabaseOrchestrator.getGlobalStats(electionRes.data.id);
         if (globalStatsRes.success) {
           setStats(globalStatsRes.data || null);
 
@@ -43,10 +43,10 @@ export function StatisticsPage() {
         }
 
         // Récupérer les stats par province
-        const provincesRes = await backendOrchestrator.getProvincesByElection(electionRes.data.id);
+        const provincesRes = await supabaseOrchestrator.getProvincesByElection(electionRes.data.id);
         if (provincesRes.success && provincesRes.data) {
           const statsPromises = provincesRes.data.map((p) =>
-            backendOrchestrator.getProvinceStats(p.id)
+            supabaseOrchestrator.getProvinceStats(p.id)
           );
           const results = await Promise.all(statsPromises);
           setProvinceStats(

@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { backendOrchestrator, SimulationConfig } from '@/services/backendOrchestrator';
+import { supabaseOrchestrator, SimulationConfig } from '@/services/supabaseOrchestrator';
 import { votingDataGenerator } from '@/services/votingDataGenerator';
 import { communicationRulesEngine } from '@/services/communicationRules';
 
@@ -36,7 +36,7 @@ export function AdministrationPage() {
 
   const loadElections = async () => {
     try {
-      const res = await backendOrchestrator.getAllElections();
+      const res = await supabaseOrchestrator.getAllElections();
       if (res.success) {
         setElections(res.data || []);
         if (res.data && res.data.length > 0) {
@@ -52,7 +52,7 @@ export function AdministrationPage() {
 
   const createElection = async () => {
     try {
-      const res = await backendOrchestrator.createElection({
+      const res = await supabaseOrchestrator.createElection({
         nom: formData.nom,
         type: formData.type as any,
         date_election: formData.date_election,
@@ -85,7 +85,7 @@ export function AdministrationPage() {
         participation_range: { min: 0.3, max: 0.9 },
       };
 
-      const res = await backendOrchestrator.startSimulation(config);
+      const res = await supabaseOrchestrator.startSimulation(config);
 
       if (res.success) {
         // Simuler l'injection de données
@@ -99,8 +99,8 @@ export function AdministrationPage() {
 
   const simulateVotingFlow = async (config: SimulationConfig) => {
     // Récupérer les provinces et candidats
-    const provincesRes = await backendOrchestrator.getProvincesByElection(config.election_id);
-    const candidatesRes = await backendOrchestrator.getCandidatsByElection(config.election_id);
+    const provincesRes = await supabaseOrchestrator.getProvincesByElection(config.election_id);
+    const candidatesRes = await supabaseOrchestrator.getCandidatsByElection(config.election_id);
 
     if (!provincesRes.success || !candidatesRes.success) return;
 
@@ -126,7 +126,7 @@ export function AdministrationPage() {
 
       // Insérer les votes
       for (const vote of batch.votes) {
-        await backendOrchestrator.insertResultat(vote);
+        await supabaseOrchestrator.insertResultat(vote);
         await communicationRulesEngine.emitEvent('result_received', vote, config.election_id);
       }
 

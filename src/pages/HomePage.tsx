@@ -5,9 +5,9 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/config/supabase';
-import { HeaderAdvanced } from '@/components/Dashboard/HeaderAdvanced';
-import { FilterBarAdvanced } from '@/components/Dashboard/FilterBarAdvanced';
-import { KPICardAdvanced, AnomalyBadge } from '@/components/Dashboard/KPICardAdvanced';
+import { HeaderAdvanced } from '@/components/dashboard/HeaderAdvanced';
+import { FilterBarAdvanced } from '@/components/dashboard/FilterBarAdvanced';
+import { KPICardAdvanced } from '@/components/dashboard/KPICardAdvanced';
 import { RDCMap } from '@/components/Map/RDCMap';
 import { useProvinces, useProvinceWithStats } from '@/hooks/useProvinces';
 import { useAnomalies, useAnomaliesNonLuesCount } from '@/hooks/useAnomalies';
@@ -17,7 +17,6 @@ import {
   MapPin,
   TrendingUp,
   AlertTriangle,
-  Modal,
   BarChart3,
   PieChart,
   LineChart,

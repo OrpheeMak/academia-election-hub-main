@@ -5,6 +5,10 @@ import { useQuery } from "@tanstack/react-query";
 import { electionApi } from "@/services/electionApi";
 import { Loader2 } from "lucide-react";
 
+const TypedMapContainer = MapContainer as React.ComponentType<any>;
+const TypedTileLayer = TileLayer as React.ComponentType<any>;
+const TypedCircleMarker = CircleMarker as React.ComponentType<any>;
+
 const colorFor = (taux: number) =>
   taux > 80 ? "#1e3a8a" :
   taux > 70 ? "#1d4ed8" :
@@ -36,18 +40,18 @@ const ElectionMap = () => {
             <Loader2 className="w-6 h-6 animate-spin text-electoral-primary" />
           </div>
         )}
-        <MapContainer
+        <TypedMapContainer
           center={[-2.88, 23.66]}
           zoom={5}
           style={{ height: "100%", width: "100%" }}
           scrollWheelZoom={false}
         >
-          <TileLayer
+          <TypedTileLayer
             attribution='&copy; OpenStreetMap'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           {data.map((p) => (
-            <CircleMarker
+            <TypedCircleMarker
               key={p.province_id}
               center={[p.centroid_lat, p.centroid_lng]}
               radius={radiusFor(p.inscrits_total)}
@@ -67,9 +71,9 @@ const ElectionMap = () => {
                   Votants : {p.votants_total.toLocaleString("fr-FR")} / {p.inscrits_total.toLocaleString("fr-FR")}
                 </div>
               </Popup>
-            </CircleMarker>
+            </TypedCircleMarker>
           ))}
-        </MapContainer>
+        </TypedMapContainer>
       </div>
       <div className="p-3 bg-muted/40 border-t border-border flex flex-wrap gap-3 text-[11px] sm:text-xs">
         {[

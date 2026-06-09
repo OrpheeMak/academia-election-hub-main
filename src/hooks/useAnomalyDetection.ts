@@ -1,5 +1,5 @@
 // src/hooks/useAnomalyDetection.ts
-// Hook pour calculer anomalies côté client (redondance avec backend)
+// Hook pour calculer anomalies côté client (redondance avec Supabase)
 // Permet déclenchement d'alertes instantanées
 
 import { useEffect, useRef } from 'react';

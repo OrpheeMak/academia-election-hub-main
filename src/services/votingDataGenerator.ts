@@ -4,7 +4,7 @@
  * Simule les patterns électoraux RDC
  */
 
-import { VotingFlowData, SimulationConfig } from './backendOrchestrator';
+import { VotingFlowData, SimulationConfig } from './supabaseOrchestrator';
 
 // ============================================================================
 // CONSTANTS & PATTERNS

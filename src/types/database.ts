@@ -238,6 +238,153 @@ export type Database = {
           updated_at?: string
         }
       }
+      regions: {
+        Row: {
+          id: number
+          name: string
+          latitude: number
+          longitude: number
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          name: string
+          latitude: number
+          longitude: number
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          name?: string
+          latitude?: number
+          longitude?: number
+          created_at?: string
+        }
+      }
+      simulations: {
+        Row: {
+          id: number
+          name: string
+          data: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          name: string
+          data: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          name?: string
+          data?: Json
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      election_results: {
+        Row: {
+          id: number
+          simulation_id: number
+          region_id: number
+          votes: number
+          percentage: number
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          simulation_id: number
+          region_id: number
+          votes: number
+          percentage: number
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          simulation_id?: number
+          region_id?: number
+          votes?: number
+          percentage?: number
+          created_at?: string
+        }
+      }
+      simulation_logs: {
+        Row: {
+          id: string
+          election_id: string
+          status: 'running' | 'paused' | 'completed' | 'cancelled'
+          config: Json | null
+          stats: Json | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          election_id: string
+          status?: 'running' | 'paused' | 'completed' | 'cancelled'
+          config?: Json | null
+          stats?: Json | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          election_id?: string
+          status?: 'running' | 'paused' | 'completed' | 'cancelled'
+          config?: Json | null
+          stats?: Json | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      user_roles: {
+        Row: {
+          id: string
+          user_id: string
+          app_role: 'admin' | 'moderator' | 'user'
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          app_role: 'admin' | 'moderator' | 'user'
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          app_role?: 'admin' | 'moderator' | 'user'
+          created_at?: string
+        }
+      }
+      votes: {
+        Row: {
+          id: number
+          simulation_id: number
+          region_id: number
+          votes: number
+          percentage: number
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          simulation_id: number
+          region_id: number
+          votes: number
+          percentage: number
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          simulation_id?: number
+          region_id?: number
+          votes?: number
+          percentage?: number
+          created_at?: string
+        }
+      }
       config_anomalies: {
         Row: {
           id: string
@@ -284,13 +431,13 @@ export type Database = {
 }
 
 // Types personnalisés pour l'application
-export interface Election extends Database['public']['Tables']['elections']['Row'] {}
-export interface Province extends Database['public']['Tables']['provinces']['Row'] {}
-export interface Candidat extends Database['public']['Tables']['candidats']['Row'] {}
-export interface ResultatPartiel extends Database['public']['Tables']['resultats_partiels']['Row'] {}
-export interface Anomalie extends Database['public']['Tables']['anomalies']['Row'] {}
-export interface Alerte extends Database['public']['Tables']['alertes']['Row'] {}
-export interface ConfigAnomalie extends Database['public']['Tables']['config_anomalies']['Row'] {}
+export type Election = Database['public']['Tables']['elections']['Row'];
+export type Province = Database['public']['Tables']['provinces']['Row'];
+export type Candidat = Database['public']['Tables']['candidats']['Row'];
+export type ResultatPartiel = Database['public']['Tables']['resultats_partiels']['Row'];
+export type Anomalie = Database['public']['Tables']['anomalies']['Row'];
+export type Alerte = Database['public']['Tables']['alertes']['Row'];
+export type ConfigAnomalie = Database['public']['Tables']['config_anomalies']['Row'];
 
 // Types étendus pour l'UI
 export interface ProvinceWithStats extends Province {
@@ -307,4 +454,11 @@ export interface ResultatAvecCandidatEtProvince extends ResultatPartiel {
 export interface AnomalieAvecDetails extends Anomalie {
   resultat?: ResultatPartiel
   province?: Province
+}
+
+export interface CirconscriptionResult {
+  id: string;
+  nom: string;
+  voix: number;
+  taux_participation: number;
 }

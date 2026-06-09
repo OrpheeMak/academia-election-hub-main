@@ -3,7 +3,7 @@
  * Setup et Configuration Centralisée
  */
 
-import { backendOrchestrator } from '@/services/backendOrchestrator';
+import { supabaseOrchestrator } from '@/services/supabaseOrchestrator';
 import { communicationRulesEngine } from '@/services/communicationRules';
 import { votingDataGenerator } from '@/services/votingDataGenerator';
 import { supabase } from '@/integrations/supabase/client';
@@ -47,7 +47,7 @@ class SystemInitializer {
       // 1. Obtenir l'élection active
       let activeElectionId = electionId;
       if (!activeElectionId) {
-        const electionRes = await backendOrchestrator.getCurrentElection();
+        const electionRes = await supabaseOrchestrator.getCurrentElection();
         if (electionRes.success && electionRes.data) {
           activeElectionId = electionRes.data.id;
         } else {
@@ -75,7 +75,7 @@ class SystemInitializer {
       // 4. Valider la connexion
       const connectionValid = await this.validateConnection();
       if (!connectionValid) {
-        throw new Error('Impossible de valider la connexion au backend');
+        throw new Error('Impossible de valider la connexion a Supabase');
       }
 
       this.initialized = true;
@@ -107,7 +107,7 @@ class SystemInitializer {
     console.log('📡 Système temps-réel connecté');
 
     // 2. S'abonner aux résultats
-    const resultSubId = backendOrchestrator.subscribeToResults(
+    const resultSubId = supabaseOrchestrator.subscribeToResults(
       this.config.election_id,
       (data) => {
         this.handleNewResult(data);
@@ -116,7 +116,7 @@ class SystemInitializer {
     this.subscriptionIds.push(resultSubId);
 
     // 3. S'abonner aux anomalies
-    const anomalySubId = backendOrchestrator.subscribeToAnomalies(
+    const anomalySubId = supabaseOrchestrator.subscribeToAnomalies(
       this.config.election_id,
       (data) => {
         this.handleNewAnomaly(data);
@@ -136,7 +136,7 @@ class SystemInitializer {
   }
 
   /**
-   * Valide la connexion au backend
+   * Valide la connexion a Supabase
    */
   private async validateConnection(): Promise<boolean> {
     try {
@@ -150,7 +150,7 @@ class SystemInitializer {
       }
 
       // Vérifier que nous pouvons récupérer l'élection
-      const electionRes = await backendOrchestrator.getElectionById(
+      const electionRes = await supabaseOrchestrator.getElectionById(
         this.config.election_id
       );
       if (!electionRes.success) {
@@ -223,7 +223,7 @@ class SystemInitializer {
       },
     };
 
-    const res = await backendOrchestrator.startSimulation(simulationConfig);
+    const res = await supabaseOrchestrator.startSimulation(simulationConfig);
     if (!res.success) {
       throw new Error('Impossible de démarrer la simulation');
     }
@@ -250,7 +250,7 @@ class SystemInitializer {
 
       // Désabonner tous les abonnements
       this.subscriptionIds.forEach((subId) => {
-        backendOrchestrator.unsubscribe(subId);
+        supabaseOrchestrator.unsubscribe(subId);
       });
       this.subscriptionIds = [];
 
@@ -290,8 +290,8 @@ class SystemInitializer {
   async reloadConfiguration(): Promise<void> {
     if (!this.config) return;
 
-    // Recharger depuis le backend
-    const electionRes = await backendOrchestrator.getElectionById(
+    // Recharger depuis le Supabase
+    const electionRes = await supabaseOrchestrator.getElectionById(
       this.config.election_id
     );
 

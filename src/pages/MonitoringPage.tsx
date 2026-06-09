@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { AlertCircle, Zap, Database, Radio, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { backendOrchestrator } from '@/services/backendOrchestrator';
+import { supabaseOrchestrator } from '@/services/supabaseOrchestrator';
 import { communicationRulesEngine } from '@/services/communicationRules';
 
 interface SystemHealth {
@@ -57,7 +57,7 @@ export function MonitoringPage() {
   const loadData = async () => {
     try {
       // Récupérer l'élection en cours
-      const electionRes = await backendOrchestrator.getCurrentElection();
+      const electionRes = await supabaseOrchestrator.getCurrentElection();
       if (electionRes.success) {
         setElection(electionRes.data);
       }

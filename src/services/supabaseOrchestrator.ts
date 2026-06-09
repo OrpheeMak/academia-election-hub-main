@@ -1,9 +1,10 @@
 /**
- * Service d'Orchestration Backend
+ * Service d'Orchestration Supabase
  * Centralise toutes les communications Supabase et la logique métier
  * Gère: Elections, Provinces, Résultats, Anomalies, Prédictions, Simulations
  */
 
+import { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import {
   Election,
@@ -11,14 +12,13 @@ import {
   Candidat,
   ResultatPartiel,
   Anomalie,
-  CirconscriptionResult,
 } from '@/types/database';
 
 // ============================================================================
 // TYPES & INTERFACES
 // ============================================================================
 
-export interface BackendResponse<T> {
+export interface SupabaseResponse<T> {
   success: boolean;
   data?: T;
   error?: string;
@@ -74,13 +74,13 @@ export interface SimulationConfig {
 // SERVICE ORCHESTRATION
 // ============================================================================
 
-class BackendOrchestrator {
-  private subscriptions: Map<string, any> = new Map();
+class SupabaseOrchestrator {
+  private subscriptions: Map<string, RealtimeChannel> = new Map();
 
   /**
    * ÉLECTIONS - Gestion des élections
    */
-  async getAllElections(): Promise<BackendResponse<Election[]>> {
+  async getAllElections(): Promise<SupabaseResponse<Election[]>> {
     try {
       const { data, error } = await supabase
         .from('elections')
@@ -99,7 +99,7 @@ class BackendOrchestrator {
     }
   }
 
-  async getElectionById(electionId: string): Promise<BackendResponse<Election>> {
+  async getElectionById(electionId: string): Promise<SupabaseResponse<Election>> {
     try {
       const { data, error } = await supabase
         .from('elections')
@@ -119,7 +119,7 @@ class BackendOrchestrator {
     }
   }
 
-  async getCurrentElection(): Promise<BackendResponse<Election>> {
+  async getCurrentElection(): Promise<SupabaseResponse<Election>> {
     try {
       const { data, error } = await supabase
         .from('elections')
@@ -141,7 +141,7 @@ class BackendOrchestrator {
     }
   }
 
-  async createElection(election: Omit<Election, 'id' | 'created_at' | 'updated_at'>): Promise<BackendResponse<Election>> {
+  async createElection(election: Omit<Election, 'id' | 'created_at' | 'updated_at'>): Promise<SupabaseResponse<Election>> {
     try {
       const { data, error } = await supabase
         .from('elections')
@@ -170,7 +170,7 @@ class BackendOrchestrator {
   /**
    * PROVINCES - Gestion des provinces et circonscriptions
    */
-  async getProvincesByElection(electionId: string): Promise<BackendResponse<Province[]>> {
+  async getProvincesByElection(electionId: string): Promise<SupabaseResponse<Province[]>> {
     try {
       const { data, error } = await supabase
         .from('provinces')
@@ -190,7 +190,7 @@ class BackendOrchestrator {
     }
   }
 
-  async getProvinceStats(provinceId: string): Promise<BackendResponse<ProvinceStats>> {
+  async getProvinceStats(provinceId: string): Promise<SupabaseResponse<ProvinceStats>> {
     try {
       const [provinceRes, resultatRes, topCandidatesRes, anomaliesRes] =
         await Promise.all([
@@ -244,7 +244,7 @@ class BackendOrchestrator {
   /**
    * CANDIDATS - Gestion des candidats
    */
-  async getCandidatsByElection(electionId: string): Promise<BackendResponse<Candidat[]>> {
+  async getCandidatsByElection(electionId: string): Promise<SupabaseResponse<Candidat[]>> {
     try {
       const { data, error } = await supabase
         .from('candidats')
@@ -267,7 +267,7 @@ class BackendOrchestrator {
   /**
    * RÉSULTATS - Gestion des résultats électoraux
    */
-  async getResultatsParProvince(provinceId: string): Promise<BackendResponse<ResultatPartiel[]>> {
+  async getResultatsParProvince(provinceId: string): Promise<SupabaseResponse<ResultatPartiel[]>> {
     try {
       const { data, error } = await supabase
         .from('resultats_partiels')
@@ -287,7 +287,7 @@ class BackendOrchestrator {
     }
   }
 
-  async insertResultat(resultat: VotingFlowData): Promise<BackendResponse<ResultatPartiel>> {
+  async insertResultat(resultat: VotingFlowData): Promise<SupabaseResponse<ResultatPartiel>> {
     try {
       const { data, error } = await supabase
         .from('resultats_partiels')
@@ -318,7 +318,7 @@ class BackendOrchestrator {
     }
   }
 
-  async getGlobalStats(electionId: string): Promise<BackendResponse<ElectionStats>> {
+  async getGlobalStats(electionId: string): Promise<SupabaseResponse<ElectionStats>> {
     try {
       const [resultatRes, anomaliesRes, provincesRes] = await Promise.all([
         supabase
@@ -372,7 +372,7 @@ class BackendOrchestrator {
   async getAnomalies(
     electionId: string,
     filter?: { severite?: string; status?: string; limit?: number }
-  ): Promise<BackendResponse<AnomalyReport[]>> {
+  ): Promise<SupabaseResponse<AnomalyReport[]>> {
     try {
       let query = supabase
         .from('anomalies')
@@ -426,7 +426,7 @@ class BackendOrchestrator {
   async flagAnomaly(
     anomalyId: string,
     status: 'investigating' | 'resolved' | 'false_positive'
-  ): Promise<BackendResponse<void>> {
+  ): Promise<SupabaseResponse<void>> {
     try {
       const { error } = await supabase
         .from('anomalies')
@@ -455,10 +455,19 @@ class BackendOrchestrator {
     const subscriptionId = `results_${electionId}_${Date.now()}`;
 
     const subscription = supabase
-      .from(`resultats_partiels:election_id=eq.${electionId}`)
-      .on('*', (payload) => {
-        callback(payload.new as ResultatPartiel);
-      })
+      .channel(`results_${electionId}_${Date.now()}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'resultats_partiels',
+          filter: `election_id=eq.${electionId}`,
+        },
+        (payload) => {
+          callback(payload.new as ResultatPartiel);
+        }
+      )
       .subscribe();
 
     this.subscriptions.set(subscriptionId, subscription);
@@ -472,10 +481,19 @@ class BackendOrchestrator {
     const subscriptionId = `anomalies_${electionId}_${Date.now()}`;
 
     const subscription = supabase
-      .from(`anomalies:election_id=eq.${electionId}`)
-      .on('INSERT', (payload) => {
-        callback(payload.new as Anomalie);
-      })
+      .channel(`anomalies_${electionId}_${Date.now()}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'anomalies',
+          filter: `election_id=eq.${electionId}`,
+        },
+        (payload) => {
+          callback(payload.new as Anomalie);
+        }
+      )
       .subscribe();
 
     this.subscriptions.set(subscriptionId, subscription);
@@ -485,7 +503,7 @@ class BackendOrchestrator {
   /**
    * SIMULATIONS - Gestion des simulations de votes
    */
-  async startSimulation(config: SimulationConfig): Promise<BackendResponse<string>> {
+  async startSimulation(config: SimulationConfig): Promise<SupabaseResponse<string>> {
     try {
       const { data, error } = await supabase
         .from('simulation_logs')
@@ -529,4 +547,4 @@ class BackendOrchestrator {
   }
 }
 
-export const backendOrchestrator = new BackendOrchestrator();
+export const supabaseOrchestrator = new SupabaseOrchestrator();

@@ -1,10 +1,10 @@
 /**
  * Hook d'Intégration Complète
- * Initialise et coordonne tous les services backend
+ * Initialise et coordonne tous les services Supabase
  */
 
 import { useEffect, useRef, useState } from 'react';
-import { backendOrchestrator } from '@/services/backendOrchestrator';
+import { supabaseOrchestrator } from '@/services/supabaseOrchestrator';
 import { communicationRulesEngine } from '@/services/communicationRules';
 import { votingDataGenerator } from '@/services/votingDataGenerator';
 
@@ -17,9 +17,9 @@ export interface IntegrationState {
 }
 
 /**
- * Hook principal pour l'intégration complète du backend
+ * Hook principal pour l'intégration complète de Supabase
  */
-export const useBackendIntegration = () => {
+export const useSupabaseIntegration = () => {
   const [state, setState] = useState<IntegrationState>({
     initialized: false,
     error: null,
@@ -31,21 +31,21 @@ export const useBackendIntegration = () => {
   const subscriptionsRef = useRef<string[]>([]);
 
   useEffect(() => {
-    initializeBackend();
+    initializeSupabase();
 
     return () => {
       // Cleanup
       subscriptionsRef.current.forEach((subId) => {
-        backendOrchestrator.unsubscribe(subId);
+        supabaseOrchestrator.unsubscribe(subId);
       });
       communicationRulesEngine.disconnect();
     };
   }, []);
 
-  const initializeBackend = async () => {
+  const initializeSupabase = async () => {
     try {
       // 1. Récupérer l'élection en cours
-      const electionRes = await backendOrchestrator.getCurrentElection();
+      const electionRes = await supabaseOrchestrator.getCurrentElection();
 
       if (electionRes.success && electionRes.data) {
         const electionId = electionRes.data.id;
@@ -54,7 +54,7 @@ export const useBackendIntegration = () => {
         communicationRulesEngine.connect();
 
         // 3. S'abonner aux résultats
-        const resultSubId = backendOrchestrator.subscribeToResults(
+        const resultSubId = supabaseOrchestrator.subscribeToResults(
           electionId,
           (data) => {
             console.log('Nouveau résultat:', data);
@@ -63,7 +63,7 @@ export const useBackendIntegration = () => {
         );
 
         // 4. S'abonner aux anomalies
-        const anomalySubId = backendOrchestrator.subscribeToAnomalies(
+        const anomalySubId = supabaseOrchestrator.subscribeToAnomalies(
           electionId,
           (data) => {
             console.log('Nouvelle anomalie:', data);
@@ -108,7 +108,7 @@ export const useBackendIntegration = () => {
     if (!state.electionId) return;
 
     try {
-      const statsRes = await backendOrchestrator.getGlobalStats(state.electionId);
+      const statsRes = await supabaseOrchestrator.getGlobalStats(state.electionId);
       if (statsRes.success) {
         setState((prev) => ({ ...prev, stats: statsRes.data }));
       }
@@ -156,7 +156,7 @@ export const useAnomaliesMonitoring = (electionId?: string) => {
 
     try {
       setLoading(true);
-      const res = await backendOrchestrator.getAnomalies(electionId, {
+      const res = await supabaseOrchestrator.getAnomalies(electionId, {
         limit: 50,
       });
       if (res.success) {
@@ -170,14 +170,14 @@ export const useAnomaliesMonitoring = (electionId?: string) => {
   };
 
   const resolveAnomaly = async (anomalyId: string) => {
-    const res = await backendOrchestrator.flagAnomaly(anomalyId, 'resolved');
+    const res = await supabaseOrchestrator.flagAnomaly(anomalyId, 'resolved');
     if (res.success) {
       loadAnomalies();
     }
   };
 
   const investigateAnomaly = async (anomalyId: string) => {
-    const res = await backendOrchestrator.flagAnomaly(
+    const res = await supabaseOrchestrator.flagAnomaly(
       anomalyId,
       'investigating'
     );
@@ -187,7 +187,7 @@ export const useAnomaliesMonitoring = (electionId?: string) => {
   };
 
   const dismissAsfalse = async (anomalyId: string) => {
-    const res = await backendOrchestrator.flagAnomaly(
+    const res = await supabaseOrchestrator.flagAnomaly(
       anomalyId,
       'false_positive'
     );
@@ -216,7 +216,7 @@ export const useSimulationManagement = () => {
   const startSimulation = async (config: any) => {
     try {
       setSimulationRunning(true);
-      const res = await backendOrchestrator.startSimulation(config);
+      const res = await supabaseOrchestrator.startSimulation(config);
       if (res.success) {
         console.log('Simulation started:', res.data);
       }
@@ -266,7 +266,7 @@ export const useRealtimeStats = (electionId?: string) => {
     if (!electionId) return;
 
     try {
-      const res = await backendOrchestrator.getGlobalStats(electionId);
+      const res = await supabaseOrchestrator.getGlobalStats(electionId);
       if (res.success) {
         setStats(res.data);
 

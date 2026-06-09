@@ -1,6 +1,6 @@
 # Tableau Électoral RDC — Prototype académique
 
-Prototype React + Lovable Cloud (Postgres managé) pour la **visualisation des prédictions électorales** et la **détection d'anomalies statistiques** en République Démocratique du Congo.
+Prototype React + Supabase pour la **visualisation des prédictions électorales** et la **détection d'anomalies statistiques** en République Démocratique du Congo.
 
 > Outil pédagogique sur **données simulées**. Aucun lien avec un système électoral officiel.
 
@@ -9,7 +9,7 @@ Prototype React + Lovable Cloud (Postgres managé) pour la **visualisation des p
 - **Frontend** : React 18 + Vite + TypeScript + Tailwind + shadcn/ui
 - **Cartographie** : react-leaflet (carte recentrée sur la RDC)
 - **Graphiques** : Recharts
-- **Données / API** : Lovable Cloud (PostgreSQL + REST auto-générée + RLS)
+- **Données / API** : Supabase (PostgreSQL + REST auto-générée + RLS + Edge Functions)
 - **Cache** : React Query + persistance `localStorage` (24 h) — adaptée aux réseaux intermittents
 - **Lazy-loading** : `React.lazy` sur la carte, les graphiques et les cartes lourdes
 
@@ -61,7 +61,7 @@ bun install
 bun run dev
 ```
 
-Le backend Lovable Cloud est déjà connecté via les variables `VITE_SUPABASE_*` (générées automatiquement).
+Supabase est connecté via les variables `VITE_SUPABASE_URL` et `VITE_SUPABASE_ANON_KEY`.
 
 ## Étapes futures
 
