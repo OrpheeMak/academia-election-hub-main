@@ -11,6 +11,10 @@ import { StatisticsPage } from "./pages/StatisticsPage";
 import { ReportsPage } from "./pages/ReportsPage";
 import { AdministrationPage } from "./pages/AdministrationPage";
 import { MonitoringPage } from "./pages/MonitoringPage";
+import { SimulationPage } from "./pages/SimulationPage";
+import { AuthPage } from "./pages/AuthPage";
+import { ObserverPage } from "./pages/ObserverPage";
+import { AnomalySimulationPage } from "./pages/AnomalySimulationPage";
 import { FiltersProvider } from "./contexts/FiltersContext";
 
 const queryClient = new QueryClient({
@@ -41,12 +45,16 @@ function App() {
         <BrowserRouter>
           <FiltersProvider>
             <Routes>
-              <Route path="/" element={<DashboardPage />} />
+              <Route path="/" element={<AuthPage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/monitoring" element={<MonitoringPage />} />
               <Route path="/statistics" element={<StatisticsPage />} />
               <Route path="/reports" element={<ReportsPage />} />
               <Route path="/administration" element={<AdministrationPage />} />
+              <Route path="/simulation" element={<SimulationPage />} />
+              <Route path="/auth" element={<AuthPage />} />
+              <Route path="/observateur" element={<ObserverPage />} />
+              <Route path="/anomalies" element={<AnomalySimulationPage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

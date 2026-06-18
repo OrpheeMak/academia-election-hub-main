@@ -1,389 +1,137 @@
-// src/pages/AdministrationPage.tsx
-// Page d'Administration : Gestion des élections, simulations et configurations
-
-import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { Settings, Play, Pause, RotateCcw, Plus, Edit2, Trash2 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Database, Plus, Save, Settings, UserCog } from 'lucide-react';
+import { AppShell } from '@/components/AppShell';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { supabaseOrchestrator, SimulationConfig } from '@/services/supabaseOrchestrator';
-import { votingDataGenerator } from '@/services/votingDataGenerator';
-import { communicationRulesEngine } from '@/services/communicationRules';
+import { provinceResults } from '@/lib/simulation-data';
 
 export function AdministrationPage() {
-  const [elections, setElections] = useState<any[]>([]);
-  const [selectedElection, setSelectedElection] = useState<string | null>(null);
-  const [simulationRunning, setSimulationRunning] = useState(false);
-  const [communicationStats, setCommunicationStats] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [formData, setFormData] = useState({
-    nom: '',
-    type: 'législative',
-    date_election: '',
-  });
-
-  useEffect(() => {
-    loadElections();
-    const statsInterval = setInterval(() => {
-      setCommunicationStats(communicationRulesEngine.getStats());
-    }, 5000);
-
-    return () => clearInterval(statsInterval);
-  }, []);
-
-  const loadElections = async () => {
-    try {
-      const res = await supabaseOrchestrator.getAllElections();
-      if (res.success) {
-        setElections(res.data || []);
-        if (res.data && res.data.length > 0) {
-          setSelectedElection(res.data[0].id);
-        }
-      }
-    } catch (error) {
-      console.error('Erreur:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const createElection = async () => {
-    try {
-      const res = await supabaseOrchestrator.createElection({
-        nom: formData.nom,
-        type: formData.type as any,
-        date_election: formData.date_election,
-        date_creation: new Date().toISOString(),
-        statut: 'prévue',
-        description: '',
-      } as any);
-
-      if (res.success) {
-        setFormData({ nom: '', type: 'législative', date_election: '' });
-        loadElections();
-      }
-    } catch (error) {
-      console.error('Erreur:', error);
-    }
-  };
-
-  const startSimulation = async () => {
-    if (!selectedElection) return;
-
-    try {
-      setSimulationRunning(true);
-      communicationRulesEngine.connect();
-
-      const config: SimulationConfig = {
-        election_id: selectedElection,
-        duration_seconds: 3600,
-        batch_interval_ms: 2000,
-        anomaly_injection_rate: 0.05,
-        participation_range: { min: 0.3, max: 0.9 },
-      };
-
-      const res = await supabaseOrchestrator.startSimulation(config);
-
-      if (res.success) {
-        // Simuler l'injection de données
-        simulateVotingFlow(config);
-      }
-    } catch (error) {
-      console.error('Erreur:', error);
-      setSimulationRunning(false);
-    }
-  };
-
-  const simulateVotingFlow = async (config: SimulationConfig) => {
-    // Récupérer les provinces et candidats
-    const provincesRes = await supabaseOrchestrator.getProvincesByElection(config.election_id);
-    const candidatesRes = await supabaseOrchestrator.getCandidatsByElection(config.election_id);
-
-    if (!provincesRes.success || !candidatesRes.success) return;
-
-    const provinceIds = provincesRes.data?.map((p) => p.id) || [];
-    const candidateIds = candidatesRes.data?.map((c) => c.id) || [];
-
-    let timeIndex = 0;
-
-    const simulationInterval = setInterval(async () => {
-      if (!simulationRunning || timeIndex >= config.duration_seconds) {
-        clearInterval(simulationInterval);
-        setSimulationRunning(false);
-        return;
-      }
-
-      // Générer un lot de votes
-      const batch = votingDataGenerator.generateVotingBatch(
-        config,
-        timeIndex,
-        provinceIds,
-        candidateIds
-      );
-
-      // Insérer les votes
-      for (const vote of batch.votes) {
-        await supabaseOrchestrator.insertResultat(vote);
-        await communicationRulesEngine.emitEvent('result_received', vote, config.election_id);
-      }
-
-      // Traiter les anomalies
-      for (const anomaly of batch.anomalies) {
-        await communicationRulesEngine.emitEvent('anomaly_detected', anomaly, config.election_id);
-      }
-
-      timeIndex += config.batch_interval_ms / 1000;
-    }, config.batch_interval_ms);
-  };
-
-  const stopSimulation = () => {
-    setSimulationRunning(false);
-    communicationRulesEngine.disconnect();
-    votingDataGenerator.reset();
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>Chargement...</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen p-6 bg-slate-50">
-      <div className="max-w-6xl mx-auto">
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-4xl font-bold mb-8">⚙️ Administration</h1>
+    <AppShell
+      title="Page administrateur"
+      subtitle="Gestion simulee des elections, des profils et des parametres de lancement."
+      eyebrow="Console d'administration"
+    >
+      <Tabs defaultValue="election">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="election">Election</TabsTrigger>
+          <TabsTrigger value="users">Utilisateurs</TabsTrigger>
+          <TabsTrigger value="settings">Parametres</TabsTrigger>
+        </TabsList>
 
-          <Tabs defaultValue="elections" className="mb-8">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="elections">Élections</TabsTrigger>
-              <TabsTrigger value="simulation">Simulation</TabsTrigger>
-              <TabsTrigger value="communication">Communication</TabsTrigger>
-            </TabsList>
-
-            {/* ÉLECTIONS TAB */}
-            <TabsContent value="elections">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Formulaire de création */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Nouvelle Élection</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <Label>Nom</Label>
-                      <Input
-                        value={formData.nom}
-                        onChange={(e) => setFormData({ ...formData, nom: e.target.value })}
-                        placeholder="Élection présidentielle 2026"
-                      />
-                    </div>
-                    <div>
-                      <Label>Type</Label>
-                      <select
-                        value={formData.type}
-                        onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                        className="w-full p-2 border rounded"
-                      >
-                        <option value="présidentielle">Présidentielle</option>
-                        <option value="législative">Législative</option>
-                        <option value="locale">Locale</option>
-                        <option value="référendum">Référendum</option>
-                      </select>
-                    </div>
-                    <div>
-                      <Label>Date</Label>
-                      <Input
-                        type="date"
-                        value={formData.date_election}
-                        onChange={(e) =>
-                          setFormData({ ...formData, date_election: e.target.value })
-                        }
-                      />
-                    </div>
-                    <Button onClick={createElection} className="w-full gap-2">
-                      <Plus className="w-4 h-4" />
-                      Créer Élection
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                {/* Liste des élections */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Élections Existantes</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      {elections.map((election) => (
-                        <motion.div
-                          key={election.id}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          className={`p-3 border rounded cursor-pointer transition ${
-                            selectedElection === election.id
-                              ? 'bg-blue-50 border-blue-300'
-                              : 'hover:bg-slate-100'
-                          }`}
-                          onClick={() => setSelectedElection(election.id)}
-                        >
-                          <div className="font-semibold">{election.nom}</div>
-                          <div className="text-sm text-slate-600">
-                            {new Date(election.date_election).toLocaleDateString('fr-FR')} •{' '}
-                            <span className="capitalize">{election.statut}</span>
-                          </div>
-                        </motion.div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+        <TabsContent value="election" className="mt-6 grid gap-6 lg:grid-cols-[420px_1fr]">
+          <Card className="rounded-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Plus className="h-5 w-5" />
+                Nouvelle election
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-2">
+                <Label htmlFor="election-name">Nom</Label>
+                <Input id="election-name" defaultValue="Election academique 2026" />
               </div>
-            </TabsContent>
+              <div className="grid gap-2">
+                <Label htmlFor="election-type">Type</Label>
+                <select id="election-type" className="h-10 rounded-md border border-input bg-background px-3 text-sm">
+                  <option>Presidentielle</option>
+                  <option>Legislative</option>
+                  <option>Locale</option>
+                </select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="election-date">Date</Label>
+                <Input id="election-date" type="date" defaultValue="2026-07-15" />
+              </div>
+              <Button className="w-full gap-2">
+                <Save className="h-4 w-4" />
+                Enregistrer
+              </Button>
+            </CardContent>
+          </Card>
 
-            {/* SIMULATION TAB */}
-            <TabsContent value="simulation">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Gestion de Simulation</CardTitle>
-                  <CardDescription>
-                    Générer et gérer les flux de votes fictifs
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    {/* Status */}
-                    <div className="p-4 bg-slate-100 rounded-lg">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-semibold">État de la Simulation</h3>
-                          <p className="text-sm text-slate-600 mt-1">
-                            {simulationRunning ? '🟢 En cours' : '⚫ Arrêtée'}
-                          </p>
-                        </div>
-                        <div className="flex gap-2">
-                          {!simulationRunning ? (
-                            <Button onClick={startSimulation} className="gap-2">
-                              <Play className="w-4 h-4" />
-                              Démarrer
-                            </Button>
-                          ) : (
-                            <Button onClick={stopSimulation} variant="destructive" className="gap-2">
-                              <Pause className="w-4 h-4" />
-                              Arrêter
-                            </Button>
-                          )}
-                          <Button onClick={() => votingDataGenerator.reset()} variant="outline">
-                            <RotateCcw className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Configuration */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <Label>Taux d'anomalies injectées</Label>
-                        <Input type="number" placeholder="0.05" min="0" max="1" step="0.01" />
-                      </div>
-                      <div>
-                        <Label>Intervalle de mise à jour (ms)</Label>
-                        <Input type="number" placeholder="2000" min="500" max="10000" />
-                      </div>
-                      <div>
-                        <Label>Participation min (%)</Label>
-                        <Input type="number" placeholder="30" min="0" max="100" />
-                      </div>
-                      <div>
-                        <Label>Participation max (%)</Label>
-                        <Input type="number" placeholder="90" min="0" max="100" />
-                      </div>
-                    </div>
-
-                    {/* Info */}
-                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                      <h4 className="font-semibold text-blue-900">ℹ️ Fonctionnement</h4>
-                      <ul className="text-sm text-blue-800 mt-2 space-y-1">
-                        <li>✓ Génère des votes fictifs réalistes</li>
-                        <li>✓ Simule les patterns électoraux RDC</li>
-                        <li>✓ Injecte automatiquement les anomalies</li>
-                        <li>✓ Envoie en temps-réel via WebSocket</li>
-                      </ul>
-                    </div>
+          <Card className="rounded-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Database className="h-5 w-5" />
+                Couverture territoriale
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-3 md:grid-cols-2">
+              {provinceResults.map((province) => (
+                <div key={province.id} className="rounded-md border border-slate-200 p-4">
+                  <div className="flex items-center justify-between">
+                    <h2 className="font-semibold">{province.name}</h2>
+                    <Badge variant="outline">{province.totalOffices} bureaux</Badge>
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                  <p className="mt-1 text-sm text-slate-600">
+                    {province.registered.toLocaleString('fr-FR')} electeurs inscrits
+                  </p>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-            {/* COMMUNICATION TAB */}
-            <TabsContent value="communication">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Stats */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Statistiques de Communication</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="p-3 bg-slate-100 rounded">
-                        <div className="text-sm text-slate-600">Événements Total</div>
-                        <div className="text-3xl font-bold">
-                          {communicationStats?.totalEvents || 0}
-                        </div>
-                      </div>
-                      <div className="p-3 bg-blue-100 rounded">
-                        <div className="text-sm text-blue-700">Événements en Attente</div>
-                        <div className="text-3xl font-bold text-blue-900">
-                          {communicationStats?.pendingEvents || 0}
-                        </div>
-                      </div>
-                      <div className="p-3 bg-yellow-100 rounded">
-                        <div className="text-sm text-yellow-700">Queue Size</div>
-                        <div className="text-3xl font-bold text-yellow-900">
-                          {communicationStats?.queueSize || 0}
-                        </div>
-                      </div>
-                      <div className="p-3 bg-red-100 rounded">
-                        <div className="text-sm text-red-700">Événements Échoués</div>
-                        <div className="text-3xl font-bold text-red-900">
-                          {communicationStats?.failedEvents || 0}
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+        <TabsContent value="users" className="mt-6">
+          <Card className="rounded-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <UserCog className="h-5 w-5" />
+                Roles et acces
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-3 md:grid-cols-3">
+              {[
+                ['Administrateur', 'Acces complet', '3 comptes'],
+                ['Observateur', 'Lecture seule', '18 comptes'],
+                ['Analyste', 'Anomalies et rapports', '5 comptes'],
+              ].map(([role, permission, count]) => (
+                <div key={role} className="rounded-md border border-slate-200 p-4">
+                  <h2 className="font-semibold">{role}</h2>
+                  <p className="mt-1 text-sm text-slate-600">{permission}</p>
+                  <Badge className="mt-3" variant="outline">
+                    {count}
+                  </Badge>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-                {/* Règles */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Règles de Communication</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2 text-sm">
-                      <div className="p-2 border-l-4 border-red-500 bg-red-50">
-                        <span className="font-semibold">Anomalies</span>: Immédiat (CRITIQUE)
-                      </div>
-                      <div className="p-2 border-l-4 border-orange-500 bg-orange-50">
-                        <span className="font-semibold">Résultats Anormaux</span>: Par lot (HAUTE)
-                      </div>
-                      <div className="p-2 border-l-4 border-blue-500 bg-blue-50">
-                        <span className="font-semibold">Participation</span>: Throttle 5s (HAUTE)
-                      </div>
-                      <div className="p-2 border-l-4 border-green-500 bg-green-50">
-                        <span className="font-semibold">Synchronisation</span>: 30s (MOYENNE)
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+        <TabsContent value="settings" className="mt-6">
+          <Card className="rounded-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                Parametres de simulation
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-2">
+                <Label htmlFor="interval">Intervalle de mise a jour</Label>
+                <Input id="interval" defaultValue="2000 ms" />
               </div>
-            </TabsContent>
-          </Tabs>
-        </motion.div>
-      </div>
-    </div>
+              <div className="grid gap-2">
+                <Label htmlFor="rate">Taux d'anomalies injectees</Label>
+                <Input id="rate" defaultValue="5%" />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="min-turnout">Participation minimum</Label>
+                <Input id="min-turnout" defaultValue="30%" />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="max-turnout">Participation maximum</Label>
+                <Input id="max-turnout" defaultValue="90%" />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </AppShell>
   );
 }

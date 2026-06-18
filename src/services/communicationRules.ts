@@ -4,7 +4,7 @@
  * Gère: WebSockets, Broadcasting, Notifications Push
  */
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/config/supabase';
 
 // ============================================================================
 // TYPES & INTERFACES

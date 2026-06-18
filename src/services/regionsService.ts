@@ -1,7 +1,7 @@
 import { supabase } from '../config/supabase';
 
 export interface Region {
-  id: number;
+  id: string;
   name: string;
   latitude: number;
   longitude: number;
@@ -11,17 +11,17 @@ export interface Region {
 export const regionsService = {
   async getAll(): Promise<Region[]> {
     const { data, error } = await supabase
-      .from('regions')
+      .from('provinces')
       .select('*')
-      .order('name');
+      .order('nom');
     
     if (error) throw error;
     return data || [];
   },
 
-  async getById(id: number): Promise<Region | null> {
+  async getById(id: string): Promise<Region | null> {
     const { data, error } = await supabase
-      .from('regions')
+      .from('provinces')
       .select('*')
       .eq('id', id)
       .single();
@@ -32,7 +32,7 @@ export const regionsService = {
 
   async create(region: Omit<Region, 'id' | 'created_at'>): Promise<Region> {
     const { data, error } = await supabase
-      .from('regions')
+      .from('provinces')
       .insert([region])
       .select()
       .single();

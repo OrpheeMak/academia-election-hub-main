@@ -81,6 +81,102 @@ export function DashboardChart({
     fill: colors[idx % colors.length],
   }));
 
+  const chart =
+    chartType === "bar" ? (
+      <BarChart data={chartData} margin={{
+        top: 20,
+        right: 30,
+        left: 0,
+        bottom: 5,
+      }}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="candidat" angle={-45} textAnchor="end" />
+        <YAxis />
+        <Tooltip
+          formatter={(value: any) => {
+            if (typeof value === "number") {
+              return [
+                value.toLocaleString(),
+                showPercentage ? "Voix" : "",
+              ];
+            }
+            return value;
+          }}
+        />
+        <Legend />
+        <Bar dataKey="voix" fill="#3b82f6" name="Voix" />
+        {showPercentage && (
+          <Bar
+            dataKey="pourcentage"
+            fill="#10b981"
+            name="%"
+            yAxisId="right"
+          />
+        )}
+        <YAxis yAxisId="right" orientation="right" />
+      </BarChart>
+    ) : chartType === "line" ? (
+      <LineChart data={chartData}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="candidat" angle={-45} textAnchor="end" />
+        <YAxis />
+        <Tooltip
+          formatter={(value: any) => {
+            if (typeof value === "number") {
+              return [value.toLocaleString(), "Voix"];
+            }
+            return value;
+          }}
+        />
+        <Legend />
+        <Line
+          type="monotone"
+          dataKey="voix"
+          stroke="#3b82f6"
+          strokeWidth={2}
+          name="Voix"
+          connectNulls
+        />
+        <Line
+          type="monotone"
+          dataKey="pourcentage"
+          stroke="#10b981"
+          strokeWidth={2}
+          name="%"
+          connectNulls
+        />
+      </LineChart>
+    ) : (
+      <PieChart>
+        <Pie
+          data={chartData}
+          dataKey="voix"
+          nameKey="candidat"
+          cx="50%"
+          cy="50%"
+          outerRadius={120}
+          label={({ candidat, pourcentage }) =>
+            `${candidat}: ${pourcentage.toFixed(1)}%`
+          }
+        >
+          {chartData.map((entry, index) => (
+            <Cell
+              key={`cell-${index}`}
+              fill={entry.fill}
+            />
+          ))}
+        </Pie>
+        <Tooltip
+          formatter={(value: any) => {
+            if (typeof value === "number") {
+              return [value.toLocaleString(), "Voix"];
+            }
+            return value;
+          }}
+        />
+      </PieChart>
+    );
+
   return (
     <Card>
       <CardHeader>
@@ -91,104 +187,7 @@ export function DashboardChart({
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={400}>
-          {chartType === "bar" && (
-            <BarChart data={chartData} margin={{
-              top: 20,
-              right: 30,
-              left: 0,
-              bottom: 5,
-            }}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="candidat" angle={-45} textAnchor="end" />
-              <YAxis />
-              <Tooltip
-                formatter={(value: any) => {
-                  if (typeof value === "number") {
-                    return [
-                      value.toLocaleString(),
-                      showPercentage ? "Voix" : "",
-                    ];
-                  }
-                  return value;
-                }}
-              />
-              <Legend />
-              <Bar dataKey="voix" fill="#3b82f6" name="Voix" />
-              {showPercentage && (
-                <Bar
-                  dataKey="pourcentage"
-                  fill="#10b981"
-                  name="%"
-                  yAxisId="right"
-                />
-              )}
-              <YAxis yAxisId="right" orientation="right" />
-            </BarChart>
-          )}
-
-          {chartType === "line" && (
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="candidat" angle={-45} textAnchor="end" />
-              <YAxis />
-              <Tooltip
-                formatter={(value: any) => {
-                  if (typeof value === "number") {
-                    return [value.toLocaleString(), "Voix"];
-                  }
-                  return value;
-                }}
-              />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="voix"
-                stroke="#3b82f6"
-                strokeWidth={2}
-                name="Voix"
-                connectNulls
-              />
-              <Line
-                type="monotone"
-                dataKey="pourcentage"
-                stroke="#10b981"
-                strokeWidth={2}
-                name="%"
-                connectNulls
-              />
-            </LineChart>
-          )}
-
-          {chartType === "pie" && (
-            <PieChart>
-              <Pie
-                data={chartData}
-                dataKey="voix"
-                nameKey="candidat"
-                cx="50%"
-                cy="50%"
-                outerRadius={120}
-                label={({ candidat, pourcentage }) =>
-                  `${candidat}: ${pourcentage.toFixed(1)}%`
-                }
-              >
-                {chartData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={entry.fill}
-                  />
-                ))}
-              </Pie>
-              <Tooltip
-                formatter={(value: any) => {
-                  if (typeof value === "number") {
-                    return [value.toLocaleString(), "Voix"];
-                  }
-                  return value;
-                }}
-              />
-            </PieChart>
-          )}
+          {chart}
         </ResponsiveContainer>
       </CardContent>
     </Card>

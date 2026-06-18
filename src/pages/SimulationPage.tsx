@@ -1,181 +1,174 @@
-import React, { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, CircleMarker } from 'react-leaflet';
-import L from 'leaflet';
-import { Button } from '../components/ui/button';
-import { Card } from '../components/ui/card';
-import { regionsService, type Region } from '../services/regionsService';
-import { simulationsService, type ElectionResult } from '../services/simulationsService';
-import { useSimulation } from '../contexts/SimulationContext';
-import '../styles/SimulationPage.css';
+import { useMemo, useState } from 'react';
+import { Pause, Play, RotateCcw, TimerReset } from 'lucide-react';
+import { AppShell } from '@/components/AppShell';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { candidateResults, getElectionSummary, provinceResults } from '@/lib/simulation-data';
 
-export const SimulationPage: React.FC = () => {
-  const { setLoading, setCurrentSimulation, setResults } = useSimulation();
-  const [regions, setRegions] = useState<Region[]>([]);
-  const [simulationResults, setSimulationResults] = useState<ElectionResult[]>([]);
-  const [isRunning, setIsRunning] = useState(false);
+export const SimulationPage = () => {
+  const [running, setRunning] = useState(false);
+  const [progress, setProgress] = useState(42);
+  const [scenario, setScenario] = useState('normal');
 
-  useEffect(() => {
-    loadRegions();
-  }, []);
+  const summary = getElectionSummary();
+  const adjustedResults = useMemo(() => {
+    const modifier = scenario === 'anomalies' ? 1.08 : scenario === 'faible' ? 0.92 : 1;
+    return candidateResults.map((candidate, index) => ({
+      ...candidate,
+      votes: Math.round(candidate.votes * modifier + index * progress * 430),
+    }));
+  }, [progress, scenario]);
 
-  const loadRegions = async () => {
-    try {
-      setLoading(true);
-      const data = await regionsService.getAll();
-      setRegions(data);
-    } catch (error) {
-      console.error('Erreur lors du chargement des régions:', error);
-    } finally {
-      setLoading(false);
-    }
+  const launchSimulation = () => {
+    setRunning(true);
+    setProgress((value) => Math.min(100, value + 12));
   };
 
-  const runSimulation = async () => {
-    setIsRunning(true);
-    setLoading(true);
-
-    try {
-      // Créer une simulation
-      const simulation = await simulationsService.create({
-        name: `Simulation ${new Date().toLocaleString('fr-FR')}`,
-        data: { status: 'running' },
-      });
-
-      setCurrentSimulation(simulation);
-
-      // Générer des résultats aléatoires pour chaque région
-      const results: Omit<ElectionResult, 'id' | 'created_at'>[] = regions.map((region) => {
-        const votes = Math.floor(Math.random() * 1000000);
-        const totalVotes = regions.reduce((acc) => acc + Math.random() * 1000000, 0);
-        const percentage = (votes / totalVotes) * 100;
-
-        return {
-          simulation_id: simulation.id,
-          region_id: region.id,
-          votes,
-          percentage,
-        };
-      });
-
-      // Sauvegarder les résultats
-      const savedResults = await simulationsService.addResults(results);
-      setSimulationResults(savedResults);
-      setResults(savedResults);
-
-      // Mettre à jour la simulation
-      await simulationsService.create({
-        name: `Simulation ${new Date().toLocaleString('fr-FR')}`,
-        data: { status: 'completed', resultsCount: savedResults.length },
-      });
-    } catch (error) {
-      console.error('Erreur lors de la simulation:', error);
-    } finally {
-      setIsRunning(false);
-      setLoading(false);
-    }
-  };
-
-  const getColorByPercentage = (percentage: number): string => {
-    if (percentage > 40) return '#ef4444';
-    if (percentage > 30) return '#f97316';
-    if (percentage > 20) return '#eab308';
-    return '#22c55e';
+  const resetSimulation = () => {
+    setRunning(false);
+    setProgress(42);
+    setScenario('normal');
   };
 
   return (
-    <div className="simulation-container">
-      <div className="simulation-header">
-        <h1>Simulation Électorale Rapide</h1>
-        <p>Simulez les résultats électoraux sur la carte interactive</p>
-      </div>
+    <AppShell
+      title="Page principale de simulation"
+      subtitle="Lancez une simulation electorale, choisissez un scenario et observez la progression des resultats."
+    >
+      <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
+        <Card className="rounded-lg">
+          <CardHeader>
+            <CardTitle>Controle de simulation</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            <div className="grid gap-2">
+              <label className="text-sm font-medium" htmlFor="scenario">
+                Scenario
+              </label>
+              <select
+                id="scenario"
+                value={scenario}
+                onChange={(event) => setScenario(event.target.value)}
+                className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+              >
+                <option value="normal">Flux normal</option>
+                <option value="faible">Participation faible</option>
+                <option value="anomalies">Injection d anomalies</option>
+              </select>
+            </div>
 
-      <div className="controls">
-        <Button
-          onClick={runSimulation}
-          disabled={isRunning}
-          size="lg"
-          className="run-button"
-        >
-          {isRunning ? 'Simulation en cours...' : 'Lancer la simulation'}
-        </Button>
-      </div>
+            <div>
+              <div className="mb-2 flex items-center justify-between text-sm">
+                <span>Progression</span>
+                <span className="font-semibold">{progress}%</span>
+              </div>
+              <Progress value={progress} />
+            </div>
 
-      <div className="content">
-        <Card className="map-card">
-          <MapContainer
-            center={[46.2276, 2.2137]}
-            zoom={6}
-            style={{ height: '600px', width: '100%' }}
-          >
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; OpenStreetMap contributors'
-            />
-            {regions.map((region) => {
-              const result = simulationResults.find((r) => r.region_id === region.id);
-              const color = result ? getColorByPercentage(result.percentage) : '#999';
+            <div className="grid grid-cols-2 gap-2">
+              <Button onClick={launchSimulation} className="gap-2">
+                <Play className="h-4 w-4" />
+                Lancer
+              </Button>
+              <Button variant="outline" onClick={() => setRunning(false)} className="gap-2">
+                <Pause className="h-4 w-4" />
+                Pause
+              </Button>
+              <Button variant="outline" onClick={resetSimulation} className="col-span-2 gap-2">
+                <RotateCcw className="h-4 w-4" />
+                Reinitialiser
+              </Button>
+            </div>
 
-              return (
-                <React.Fragment key={region.id}>
-                  <Marker position={[region.latitude, region.longitude]}>
-                    <Popup>
-                      <div className="popup-content">
-                        <h3>{region.name}</h3>
-                        {result && (
-                          <>
-                            <p><strong>Votes:</strong> {result.votes.toLocaleString('fr-FR')}</p>
-                            <p><strong>Pourcentage:</strong> {result.percentage.toFixed(2)}%</p>
-                          </>
-                        )}
-                      </div>
-                    </Popup>
-                  </Marker>
-                  {result && (
-                    <CircleMarker
-                      center={[region.latitude, region.longitude]}
-                      radius={Math.sqrt(result.percentage) * 2}
-                      fillColor={color}
-                      color={color}
-                      weight={2}
-                      opacity={0.7}
-                      fillOpacity={0.6}
-                    />
-                  )}
-                </React.Fragment>
-              );
-            })}
-          </MapContainer>
+            <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
+              <div className="flex items-center gap-2 text-sm font-semibold">
+                <TimerReset className="h-4 w-4 text-teal-700" />
+                Etat
+              </div>
+              <p className="mt-1 text-sm text-slate-600">
+                {running ? 'Simulation active: les resultats evoluent.' : 'Simulation en attente.'}
+              </p>
+            </div>
+          </CardContent>
         </Card>
 
-        {simulationResults.length > 0 && (
-          <Card className="results-card">
-            <h2>Résultats de la simulation</h2>
-            <div className="results-table-container">
-              <table className="results-table">
-                <thead>
-                  <tr>
-                    <th>Région</th>
-                    <th>Votes</th>
-                    <th>Pourcentage</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {simulationResults.map((result) => {
-                    const region = regions.find((r) => r.id === result.region_id);
-                    return (
-                      <tr key={result.id}>
-                        <td>{region?.name || 'N/A'}</td>
-                        <td>{result.votes.toLocaleString('fr-FR')}</td>
-                        <td>{result.percentage.toFixed(2)}%</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+        <div className="space-y-6">
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card className="rounded-lg">
+              <CardContent className="p-5">
+                <p className="text-sm text-slate-500">Inscrits</p>
+                <p className="text-2xl font-bold">{summary.registered.toLocaleString('fr-FR')}</p>
+              </CardContent>
+            </Card>
+            <Card className="rounded-lg">
+              <CardContent className="p-5">
+                <p className="text-sm text-slate-500">Bureaux</p>
+                <p className="text-2xl font-bold">
+                  {summary.countedOffices}/{summary.totalOffices}
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="rounded-lg">
+              <CardContent className="p-5">
+                <p className="text-sm text-slate-500">Participation</p>
+                <p className="text-2xl font-bold">{summary.averageTurnout.toFixed(1)}%</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card className="rounded-lg">
+            <CardHeader>
+              <CardTitle>Resultats generes</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {adjustedResults.map((candidate) => {
+                const maxVotes = Math.max(...adjustedResults.map((item) => item.votes));
+                return (
+                  <div key={candidate.id}>
+                    <div className="mb-2 flex items-center justify-between gap-3 text-sm">
+                      <div>
+                        <span className="font-semibold">{candidate.name}</span>
+                        <span className="ml-2 text-slate-500">{candidate.party}</span>
+                      </div>
+                      <span className="font-semibold">{candidate.votes.toLocaleString('fr-FR')}</span>
+                    </div>
+                    <div className="h-3 overflow-hidden rounded-full bg-slate-100">
+                      <div
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${(candidate.votes / maxVotes) * 100}%`,
+                          backgroundColor: candidate.color,
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </CardContent>
           </Card>
-        )}
+
+          <Card className="rounded-lg">
+            <CardHeader>
+              <CardTitle>Provinces suivies</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-3 md:grid-cols-2">
+              {provinceResults.map((province) => (
+                <div key={province.id} className="rounded-md border border-slate-200 p-4">
+                  <div className="flex items-center justify-between gap-2">
+                    <h2 className="font-semibold">{province.name}</h2>
+                    <Badge variant={province.riskScore > 70 ? 'destructive' : 'outline'}>
+                      {province.turnout}%
+                    </Badge>
+                  </div>
+                  <p className="mt-1 text-sm text-slate-600">{province.countedOffices} bureaux transmis</p>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
       </div>
-    </div>
+    </AppShell>
   );
 };

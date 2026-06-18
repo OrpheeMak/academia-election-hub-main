@@ -82,7 +82,7 @@ export function MonitoringPage() {
     setHealth({
       database: randomHealth() as any,
       api: randomHealth() as any,
-      realtime: Math.random() > 0.05 ? 'connected' : 'disconnecting',
+      realtime: Math.random() > 0.05 ? 'connected' : 'reconnecting',
       lastCheck: new Date(),
     });
   };

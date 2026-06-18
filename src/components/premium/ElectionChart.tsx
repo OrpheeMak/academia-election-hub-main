@@ -79,7 +79,7 @@ export const ParticipationChart = React.memo<ParticipationChartProps>(({ data })
                 backgroundColor: 'rgba(0,0,0,0.8)',
                 border: '1px solid rgba(255,255,255,0.2)',
               }}
-              formatter={(value) => `${value.toFixed(1)}%`}
+              formatter={(value) => `${Number(value).toFixed(1)}%`}
             />
             <Line
               type="monotone"
@@ -157,7 +157,7 @@ export const VoteDistributionChart = React.memo<VoteDistributionProps>(
                   <Cell key={`cell-${index}`} fill={entry.colour} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value) => value.toLocaleString('fr-FR')} />
+              <Tooltip formatter={(value) => Number(value).toLocaleString('fr-FR')} />
             </PieChart>
           </ResponsiveContainer>
         </GlassCard>
@@ -220,7 +220,7 @@ export const VotesByCirconscriptionChart = React.memo<VotesByCirconscriptionProp
                   backgroundColor: 'rgba(0,0,0,0.8)',
                   border: '1px solid rgba(255,255,255,0.2)',
                 }}
-                formatter={(value) => value.toLocaleString('fr-FR')}
+                formatter={(value) => Number(value).toLocaleString('fr-FR')}
               />
               <Bar dataKey="voix" fill="#3b82f6" isAnimationActive={true} radius={[8, 8, 0, 0]} />
             </BarChart>

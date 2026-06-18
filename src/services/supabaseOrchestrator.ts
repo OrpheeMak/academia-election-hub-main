@@ -5,7 +5,7 @@
  */
 
 import { RealtimeChannel } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/config/supabase';
 import {
   Election,
   Province,

@@ -432,8 +432,8 @@ WHERE NOT EXISTS (SELECT 1 FROM elections WHERE nom = 'Élection Test 2026');
 -- ============================================================================
 
 -- Activer les extensions nécessaires
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS "postgres";
 CREATE EXTENSION IF NOT EXISTS "btree_gist";
 
 COMMIT;

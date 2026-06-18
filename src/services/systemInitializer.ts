@@ -6,7 +6,7 @@
 import { supabaseOrchestrator } from '@/services/supabaseOrchestrator';
 import { communicationRulesEngine } from '@/services/communicationRules';
 import { votingDataGenerator } from '@/services/votingDataGenerator';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/config/supabase';
 
 // ============================================================================
 // TYPES

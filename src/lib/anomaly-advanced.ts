@@ -70,7 +70,7 @@ export function detectZScoreAnomalies(
   const std = Math.sqrt(variance) || 1;
 
   return samples
-    .map((s) => {
+    .map((s): Anomaly => {
       const zscore = calculateZScore(s.taux, mean, std);
       return {
         id: `zscore_${s.bureau_id}_${Date.now()}`,
@@ -119,7 +119,7 @@ export function detectIQRAnomalies(
         s.taux < stats.lower_bound ||
         s.taux > stats.upper_bound
     )
-    .map((s) => ({
+    .map((s): Anomaly => ({
       id: `iqr_${s.bureau_id}_${Date.now()}`,
       bureau_id: s.bureau_id,
       type: "iqr" as const,

@@ -328,7 +328,7 @@ $$ LANGUAGE plpgsql;
 
 -- Trigger: Détecter et log les anomalies automatiquement
 CREATE TRIGGER tr_detect_anomalies
-AFTER INSERT OR UPDATE ON resultats_partiels
+AFTER INSERT ON resultats_partiels
 FOR EACH ROW
 EXECUTE FUNCTION log_detected_anomalies();
 

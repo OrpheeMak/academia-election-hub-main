@@ -38,65 +38,69 @@ const gravityConfig = {
   },
 };
 
-export const AnomalyAlert = React.memo<AnomalyAlertProps>(
-  ({ id, type, description, gravite, timestamp, zScore, onDismiss }) => {
-    const config = gravityConfig[gravite];
-    const Icon = config.icon;
+export const AnomalyAlert = React.memo(
+  React.forwardRef<HTMLDivElement, AnomalyAlertProps>(
+    ({ id, type, description, gravite, timestamp, zScore, onDismiss }, ref) => {
+      const config = gravityConfig[gravite];
+      const Icon = config.icon;
+      const typeLabel = type ? type.replace(/_/g, ' ').toUpperCase() : 'ANOMALIE INCONNUE';
 
-    return (
-      <motion.div
-        initial={{ opacity: 0, x: -20, scale: 0.95 }}
-        animate={{ opacity: 1, x: 0, scale: 1 }}
-        exit={{ opacity: 0, x: 20, scale: 0.95 }}
-        transition={{ duration: 0.2 }}
-        className="mb-3"
-      >
-        <GlassCard className={cn('p-4', config.color)} hover={false}>
-          <div className="flex items-start justify-between gap-3">
-            {/* Icône + Contenu */}
-            <div className="flex gap-3 flex-1 min-w-0">
-              <div className="mt-0.5 flex-shrink-0">
-                <Icon className="h-5 w-5" />
-              </div>
-
-              <div className="flex-1 min-w-0">
-                {/* Type + Badge */}
-                <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <p className="font-semibold text-sm">
-                    {type.replace(/_/g, ' ').toUpperCase()}
-                  </p>
-                  <span className={cn('px-2 py-0.5 rounded text-xs font-semibold', config.badge)}>
-                    {config.title}
-                  </span>
+      return (
+        <motion.div
+          ref={ref}
+          initial={{ opacity: 0, x: -20, scale: 0.95 }}
+          animate={{ opacity: 1, x: 0, scale: 1 }}
+          exit={{ opacity: 0, x: 20, scale: 0.95 }}
+          transition={{ duration: 0.2 }}
+          className="mb-3"
+        >
+          <GlassCard className={cn('p-4', config.color)} hover={false}>
+            <div className="flex items-start justify-between gap-3">
+              {/* Icône + Contenu */}
+              <div className="flex gap-3 flex-1 min-w-0">
+                <div className="mt-0.5 flex-shrink-0">
+                  <Icon className="h-5 w-5" />
                 </div>
 
-                {/* Description */}
-                <p className="text-sm opacity-90 mb-2 break-words">{description}</p>
+                <div className="flex-1 min-w-0">
+                  {/* Type + Badge */}
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <p className="font-semibold text-sm">
+                      {typeLabel}
+                    </p>
+                    <span className={cn('px-2 py-0.5 rounded text-xs font-semibold', config.badge)}>
+                      {config.title}
+                    </span>
+                  </div>
 
-                {/* Meta */}
-                <div className="flex flex-wrap gap-2 text-xs opacity-75">
-                  <span>{new Date(timestamp).toLocaleTimeString('fr-FR')}</span>
-                  {zScore !== undefined && <span>Z-Score: {zScore.toFixed(2)}</span>}
+                  {/* Description */}
+                  <p className="text-sm opacity-90 mb-2 break-words">{description}</p>
+
+                  {/* Meta */}
+                  <div className="flex flex-wrap gap-2 text-xs opacity-75">
+                    <span>{new Date(timestamp).toLocaleTimeString('fr-FR')}</span>
+                    {zScore !== undefined && <span>Z-Score: {zScore.toFixed(2)}</span>}
+                  </div>
                 </div>
               </div>
+
+              {/* Bouton Fermeture */}
+              {onDismiss && (
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => onDismiss(id)}
+                  className="flex-shrink-0 mt-1 p-1 hover:bg-white/10 rounded transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </motion.button>
+              )}
             </div>
-
-            {/* Bouton Fermeture */}
-            {onDismiss && (
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => onDismiss(id)}
-                className="flex-shrink-0 mt-1 p-1 hover:bg-white/10 rounded transition-colors"
-              >
-                <X className="h-4 w-4" />
-              </motion.button>
-            )}
-          </div>
-        </GlassCard>
-      </motion.div>
-    );
-  }
+          </GlassCard>
+        </motion.div>
+      );
+    }
+  )
 );
 
 AnomalyAlert.displayName = 'AnomalyAlert';

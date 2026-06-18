@@ -29,15 +29,15 @@ export function useRealtimeResults() {
             },
             (payload) => {
               const resultat = payload.new as Resultat;
-              console.log('📊 Nouveau résultat reçu:', resultat.candidat_nom);
+              console.log('📊 Nouveau résultat reçu:', resultat.id);
 
               // Ajoute au store
               addResultat(resultat);
 
               // Toast de confirmation (silencieux si pas anomalie)
               if (resultat.is_anomalie) {
-                toast.warning(`⚠️ Anomalie détectée: ${resultat.anomalie_type}`, {
-                  description: `${resultat.candidat_nom} - Taux: ${resultat.taux_participation.toFixed(1)}%`,
+                toast.warning(`⚠️ Anomalie détectée`, {
+                  description: `Taux: ${Number(resultat.taux_participation ?? 0).toFixed(1)}%`,
                 });
               }
             }
@@ -64,13 +64,14 @@ export function useRealtimeResults() {
                     ? '⚠️'
                     : 'ℹ️';
 
-              toast(
-                `${icon} ${anomalie.type_anomalie.replace(/_/g, ' ').toUpperCase()}`,
-                {
-                  description: anomalie.description,
-                  duration: anomalie.gravite === 'critique' ? 10000 : 5000,
-                }
-              );
+              const anomalyTypeLabel = anomalie.type_anomalie
+                ? anomalie.type_anomalie.replace(/_/g, ' ').toUpperCase()
+                : 'ANOMALIE INCONNUE';
+
+              toast(`${icon} ${anomalyTypeLabel}`, {
+                description: anomalie.description,
+                duration: anomalie.gravite === 'critique' ? 10000 : 5000,
+              });
             }
           )
           .subscribe((status: string) => {
@@ -114,7 +115,7 @@ export async function loadHistoricalData() {
     const { data: election, error: electionError } = await supabase
       .from('elections')
       .select('*')
-      .order('date', { ascending: false })
+      .order('date_election', { ascending: false })
       .limit(1)
       .single();
 
@@ -125,14 +126,32 @@ export async function loadHistoricalData() {
 
     setElection(election);
 
-    // Charge les circonscriptions
-    const { data: circonscriptions } = await supabase
-      .from('circonscriptions')
-      .select('*')
+    // Charge les circonscriptions via les provinces liées à l'élection
+    const { data: provinces, error: provincesError } = await supabase
+      .from('provinces')
+      .select('id')
       .eq('election_id', election.id);
 
-    if (circonscriptions) {
-      setCirconscriptions(circonscriptions);
+    if (provincesError) {
+      console.warn('Erreur chargement provinces:', provincesError);
+    }
+
+    const provinceIds = provinces?.map((province) => province.id) ?? [];
+    if (provinceIds.length > 0) {
+      const { data: circonscriptions, error: circonscriptionsError } = await supabase
+        .from('circonscriptions')
+        .select('*')
+        .in('province_id', provinceIds);
+
+      if (circonscriptionsError) {
+        console.warn('Erreur chargement circonscriptions:', circonscriptionsError);
+      }
+
+      if (circonscriptions) {
+        setCirconscriptions(circonscriptions);
+      }
+    } else {
+      setCirconscriptions([]);
     }
 
     // Charge les résultats existants
@@ -140,7 +159,7 @@ export async function loadHistoricalData() {
       .from('resultats_partiels')
       .select('*')
       .eq('election_id', election.id)
-      .order('timestamp_insertion', { ascending: false })
+      .order('timestamp_saisie', { ascending: false })
       .limit(1000);
 
     if (resultats) {

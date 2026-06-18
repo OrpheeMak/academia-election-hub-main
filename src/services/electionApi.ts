@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/config/supabase";
 
 export interface Province {
   id: string;

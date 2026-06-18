@@ -7,7 +7,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export async function testConnection() {
   try {
-    const { data, error } = await supabase.from('regions').select('*');
+    const { data, error } = await supabase.from('provinces').select('*');
     if (error) throw error;
     console.log('✅ Connexion réussie!', data);
   } catch (error) {

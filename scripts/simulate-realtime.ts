@@ -1,4 +1,10 @@
-// scripts/simulate-realtime.ts
+<BrowserRouter>
+  <FiltersProvider>
+    <SimulationProvider>
+      <Routes>...</Routes>
+    </SimulationProvider>
+  </FiltersProvider>
+</BrowserRouter>// scripts/simulate-realtime.ts
 // EXÉCUTABLE : tsx scripts/simulate-realtime.ts
 // Injecte des données électorales simulées en temps réel dans Supabase
 // Détecte anomalies côté backend avant stockage
@@ -177,7 +183,7 @@ class ElectionSimulator {
         (config.participation_rate_range.max - config.participation_rate_range.min) +
       config.participation_rate_range.min;
 
-    state.totalParticipation.push(participation);
+    state.totalParticipation.push(participat-ion);
 
     return this.dataset.candidats.map((candidat) => {
       // Génère voix avec distribution normale

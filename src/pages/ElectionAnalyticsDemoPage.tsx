@@ -299,7 +299,7 @@ export function ElectionAnalyticsDemoPage() {
 
             <Button
               variant="outline"
-              onClick={() => triggerPredictions()}
+              onClick={() => triggerPredictions(undefined)}
               disabled={isCalculatingPredictions}
             >
               {isCalculatingPredictions && (

@@ -8,112 +8,107 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 215 25% 27%;
+    --background: 217 91% 96%;
+    --foreground: 222 32% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 27%;
+    --card-foreground: 222 32% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 27%;
+    --popover-foreground: 222 32% 12%;
 
-    --primary: 217 91% 60%;
+    --primary: 232 78% 58%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 214 32% 91%;
-    --secondary-foreground: 215 25% 27%;
+    --secondary: 259 68% 67%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 214 32% 91%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 210 16% 82%;
+    --muted-foreground: 215 17% 45%;
 
-    --accent: 217 91% 60%;
+    --accent: 171 62% 50%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 359 90% 57%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 32% 88%;
-    --input: 214 32% 88%;
-    --ring: 217 91% 60%;
+    --border: 214 44% 88%;
+    --input: 214 44% 92%;
+    --ring: 232 78% 58%;
 
-    --radius: 0.75rem;
-    
-    --chart-1: 217 91% 60%;
-    --chart-2: 221 83% 53%;
-    --chart-3: 212 97% 87%;
+    --radius: 1rem;
+
+    --chart-1: 232 78% 58%;
+    --chart-2: 259 68% 67%;
+    --chart-3: 190 70% 78%;
     --chart-4: 210 40% 96%;
-    --chart-5: 215 25% 27%;
-    
-    --electoral-primary: 217 91% 60%;
-    --electoral-secondary: 221 83% 53%;
-    --electoral-dark: 224 71% 41%;
-    --electoral-light: 212 97% 87%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
+    --chart-5: 222 32% 12%;
 
     --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-foreground: 222 32% 12%;
+    --sidebar-primary: 232 78% 58%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 171 62% 50%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 214 44% 88%;
+    --sidebar-ring: 232 78% 58%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --background: 228 30% 10%;
+    --foreground: 210 24% 96%;
+    --card: 228 28% 12%;
+    --card-foreground: 210 24% 96%;
+    --popover: 228 28% 12%;
+    --popover-foreground: 210 24% 96%;
+    --primary: 231 75% 54%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 262 67% 65%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 232 40% 13%;
+    --muted-foreground: 210 24% 96%;
+    --accent: 171 62% 50%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 359 76% 58%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 232 40% 16%;
+    --input: 232 40% 16%;
+    --ring: 231 75% 54%;
+    --sidebar-background: 232 40% 12%;
+    --sidebar-foreground: 210 24% 96%;
+    --sidebar-primary: 232 75% 54%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 210 24% 16%;
+    --sidebar-accent-foreground: 210 24% 96%;
+    --sidebar-border: 232 40% 16%;
+    --sidebar-ring: 231 75% 54%;
   }
 }
 
 @layer base {
-  * {
-    @apply border-border;
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 
   body {
-    @apply bg-background text-foreground;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    @apply bg-background text-foreground antialiased;
+    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    margin: 0;
+    background-image: radial-gradient(circle at top left, rgba(99, 102, 241, 0.12), transparent 28%),
+      radial-gradient(circle at bottom right, rgba(168, 85, 247, 0.08), transparent 24%);
+  }
+
+  button, input, textarea, select {
+    font: inherit;
+  }
+
+  ::selection {
+    background: rgba(99, 102, 241, 0.25);
+    color: #111827;
   }
 }
